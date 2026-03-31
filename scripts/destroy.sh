@@ -91,17 +91,31 @@ while IFS=$'\t' read -r router region; do
     region=$(echo "$region" | awk -F/ '{print $NF}')
     echo "  Router: $router ($region)"
 
-    # Get NATs into array first — no nested pipes
-    mapfile -t NATS < <(gcloud compute routers nats list         --project="$PROJECT_ID"         --router="$router"         --region="$region"         --format="value(name)" 2>/dev/null)
+    # Get NATs into array first — Bash 3.2 compatible (replaced mapfile)
+    NATS=()
+    while IFS= read -r nat; do
+        [[ -n "$nat" ]] && NATS+=("$nat")
+    done < <(gcloud compute routers nats list \
+        --project="$PROJECT_ID" \
+        --router="$router" \
+        --region="$region" \
+        --format="value(name)" 2>/dev/null)
 
     for nat in "${NATS[@]}"; do
         [[ -z "$nat" ]] && continue
         echo "    Deleting NAT: $nat"
-        gcloud compute routers nats delete "$nat"             --project="$PROJECT_ID"             --router="$router"             --region="$region"             --quiet 2>/dev/null && echo "    NAT $nat deleted" || echo "    NAT $nat delete failed"
+        gcloud compute routers nats delete "$nat" \
+            --project="$PROJECT_ID" \
+            --router="$router" \
+            --region="$region" \
+            --quiet 2>/dev/null && echo "    NAT $nat deleted" || echo "    NAT $nat delete failed"
     done
 
     echo "  Deleting router: $router"
-    gcloud compute routers delete "$router"         --project="$PROJECT_ID"         --region="$region"         --quiet 2>/dev/null && echo "  Router $router deleted" || echo "  Router $router delete failed"
+    gcloud compute routers delete "$router" \
+        --project="$PROJECT_ID" \
+        --region="$region" \
+        --quiet 2>/dev/null && echo "  Router $router deleted" || echo "  Router $router delete failed"
 
 done < <(gcloud compute routers list --project="$PROJECT_ID" --format="value(name,region)" 2>/dev/null)
 
@@ -128,7 +142,8 @@ for region in $REGIONS; do
 done
 
 echo "7. Force removing ALL routers in ALL regions (global sweep)..."
-ALL_ROUTERS=$(gcloud compute routers list --project="$PROJECT_ID"     --format="value(name,region)" 2>/dev/null)
+ALL_ROUTERS=$(gcloud compute routers list --project="$PROJECT_ID" \
+    --format="value(name,region)" 2>/dev/null)
 
 if [[ -z "$ALL_ROUTERS" ]]; then
     echo "  No routers found"
@@ -138,15 +153,30 @@ else
         region=$(echo "$region" | awk -F/ '{print $NF}')
         echo "  Found router: $router in $region"
 
-        # Delete NATs first
-        NATS=$(gcloud compute routers nats list             --project="$PROJECT_ID"             --router="$router"             --region="$region"             --format="value(name)" 2>/dev/null)
-        for nat in $NATS; do
+        # Delete NATs first — Bash 3.2 compatible (replaced string assignment with array)
+        NATS=()
+        while IFS= read -r nat; do
+            [[ -n "$nat" ]] && NATS+=("$nat")
+        done < <(gcloud compute routers nats list \
+            --project="$PROJECT_ID" \
+            --router="$router" \
+            --region="$region" \
+            --format="value(name)" 2>/dev/null)
+
+        for nat in "${NATS[@]}"; do
             echo "    Deleting NAT: $nat"
-            gcloud compute routers nats delete "$nat"                 --project="$PROJECT_ID"                 --router="$router"                 --region="$region"                 --quiet 2>/dev/null && echo "    NAT deleted" || echo "    NAT delete failed"
+            gcloud compute routers nats delete "$nat" \
+                --project="$PROJECT_ID" \
+                --router="$router" \
+                --region="$region" \
+                --quiet 2>/dev/null && echo "    NAT deleted" || echo "    NAT delete failed"
         done
 
         # Delete the router
-        gcloud compute routers delete "$router"             --project="$PROJECT_ID"             --region="$region"             --quiet 2>/dev/null && echo "  Router deleted: $router" || echo "  Router delete failed: $router"
+        gcloud compute routers delete "$router" \
+            --project="$PROJECT_ID" \
+            --region="$region" \
+            --quiet 2>/dev/null && echo "  Router deleted: $router" || echo "  Router delete failed: $router"
     done
 fi
 
@@ -154,13 +184,23 @@ echo "  Remaining routers after sweep:"
 gcloud compute routers list --project="$PROJECT_ID" 2>/dev/null || echo "  None"
 
 echo "7b. Removing service networking peerings..."
-gcloud services vpc-peerings delete     --service=servicenetworking.googleapis.com     --network="$VPC_NAME"     --project="$PROJECT_ID"     --quiet 2>/dev/null || true
+gcloud services vpc-peerings delete \
+    --service=servicenetworking.googleapis.com \
+    --network="$VPC_NAME" \
+    --project="$PROJECT_ID" \
+    --quiet 2>/dev/null || true
 
 # Also remove any other peerings on the VPC
-gcloud compute networks peerings list     --network="$VPC_NAME"     --project="$PROJECT_ID"     --format="value(name)" 2>/dev/null | while read -r peering; do
+gcloud compute networks peerings list \
+    --network="$VPC_NAME" \
+    --project="$PROJECT_ID" \
+    --format="value(name)" 2>/dev/null | while read -r peering; do
     if [[ -n "$peering" ]]; then
         echo "  Removing peering: $peering"
-        gcloud compute networks peerings delete "$peering"             --network="$VPC_NAME"             --project="$PROJECT_ID"             --quiet 2>/dev/null || true
+        gcloud compute networks peerings delete "$peering" \
+            --network="$VPC_NAME" \
+            --project="$PROJECT_ID" \
+            --quiet 2>/dev/null || true
     fi
 done
 
