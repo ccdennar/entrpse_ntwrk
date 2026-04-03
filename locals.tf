@@ -8,10 +8,19 @@ locals {
       name                     = tier.name
       region                   = var.regions[idx % length(var.regions)]
       purpose                  = tier.purpose
-      ip_cidr_range           = cidrsubnet(var.vpc_cidr, lookup(tier, "newbits", 8), idx)
+      ip_cidr_range            = cidrsubnet(var.vpc_cidr, lookup(tier, "newbits", 8), idx)
       private_ip_google_access = lookup(tier, "private_ip_google_access", false)
       flow_logs                = lookup(tier, "flow_logs", true)
-      secondary_ip_ranges      = {}
+      secondary_ip_ranges      = tier.name == "web" ? {
+        gke-pods = {
+          range_name    = "gke-pods"
+          ip_cidr_range = "10.1.0.0/16"
+        }
+        gke-services = {
+          range_name    = "gke-services"
+          ip_cidr_range = "10.2.0.0/20"
+        }
+      } : {}
     }
   } : {}
   
