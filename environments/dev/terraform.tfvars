@@ -1,71 +1,40 @@
-# Production Example
-project_id    = "fresh-84"
-project_name  = "fresh-84"
-environment   = "dev"
+project_id   = "fresh-84"
+project_name = "fresh-84"
+environment  = "dev"
 
-# Network
-vpc_cidr      = "10.0.0.0/16"
-regions       = ["us-central1", "us-east1", "europe-west1"]
+vpc_cidr = "10.0.0.0/16"
+regions  = ["us-central1", "us-east1", "europe-west1"]
 
-# Subnets - Auto-generate from tiers
 auto_generate_subnets = true
 tiers = [
-  { 
-    name = "web", 
-    purpose = "WEB_SERVERS", 
-    private_ip_google_access = false,
-    flow_logs = true
-  },
-  { 
-    name = "api", 
-    purpose = "API_SERVERS", 
-    private_ip_google_access = false,
-    flow_logs = true
-  },
-  { 
-    name = "cache", 
-    purpose = "REDIS_CLUSTER", 
-    private_ip_google_access = true,
-    flow_logs = true
-  },
-  { 
-    name = "db", 
-    purpose = "CLOUD_SQL", 
-    private_ip_google_access = true,
-    flow_logs = true
-  },
-  { 
-    name = "mgmt", 
-    purpose = "BASTION", 
-    private_ip_google_access = false,
-    flow_logs = true
-  }
+  { name = "web",   purpose = "WEB_SERVERS",  private_ip_google_access = true,  flow_logs = true },
+  { name = "api",   purpose = "API_SERVERS",   private_ip_google_access = false, flow_logs = true },
+  { name = "cache", purpose = "REDIS_CLUSTER", private_ip_google_access = true,  flow_logs = true },
+  { name = "db",    purpose = "CLOUD_SQL",     private_ip_google_access = true,  flow_logs = true },
+  { name = "mgmt",  purpose = "BASTION",       private_ip_google_access = false, flow_logs = true },
 ]
 
-# Security
-web_access_cidrs = ["203.0.113.0/24", "198.51.100.0/24"]  # Office + VPN
-admin_cidrs      = ["203.0.113.10/32"]                     # Jump host only
-app_ports        = ["8080", "9090"]                        # Custom app ports
-db_ports         = ["5432", "6379"]                        # PostgreSQL + Redis
+web_access_cidrs = ["203.0.113.0/24", "198.51.100.0/24"]
+admin_cidrs      = ["203.0.113.10/32"]
+app_ports        = ["8080", "9090"]
+db_ports         = ["5432", "6379"]
 
-# Custom firewall rule override
 custom_firewall_rules = {
   "allow-monitoring" = {
     description = "Allow Prometheus/Grafana scraping"
     direction   = "INGRESS"
     priority    = 950
-    ranges      = ["10.0.5.0/24"]  # Monitoring subnet
-    allow = [{ protocol = "tcp", ports = ["9090", "3000"] }]
+    ranges      = ["10.0.5.0/24"]
+    allow       = [{ protocol = "tcp", ports = ["9090", "3000"] }]
     target_tags = ["monitored"]
   }
 }
 
-# NAT
-enable_nat = true
+enable_nat  = true
 nat_regions = ["us-central1", "us-east1"]
 nat_subnet_mapping = {
-  "us-central1" = "mgmt-us-central1"
-  "us-east1"    = "mgmt-us-east1"
+  "us-central1" = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+  "us-east1"    = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
 nat_config = {

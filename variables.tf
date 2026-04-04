@@ -148,6 +148,7 @@ variable "nat_config" {
     max_ports_per_vm               = optional(number, 1024)
     enable_dynamic_port_allocation = optional(bool, true)
     log_filter                     = optional(string, "ERRORS_ONLY")
+    nat_regions                    = optional(list(string), null)  # null uses cluster region
   })
   default = {}
 }

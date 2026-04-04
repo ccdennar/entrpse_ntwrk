@@ -59,3 +59,15 @@ variable "private_service_cidr_prefix" {
   type    = number
   default = 16
 }
+
+variable "nat_config" {
+  description = "Cloud NAT configuration parameters"
+  type = object({
+    min_ports_per_vm               = optional(number, 128)
+    max_ports_per_vm               = optional(number, 1024)
+    enable_dynamic_port_allocation = optional(bool, true)
+    log_filter                     = optional(string, "ALL")
+    nat_regions                    = optional(list(string), null)  # null uses cluster region
+  })
+  default = {}
+}
