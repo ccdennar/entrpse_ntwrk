@@ -34,7 +34,7 @@ custom_firewall_rules = {
     description = "Allow GKE nodes to reach private control plane (required for registration)"
     direction   = "EGRESS"
     priority    = 900          # Must be much higher priority than deny-all
-    ranges      = [var.master_ipv4_cidr_block]   # e.g. "172.16.0.0/28" — use your actual value
+    ranges      = ["172.16.0.0/28"]
     allow       = [{ protocol = "tcp", ports = ["443"] }]
     target_tags = ["gke-${var.cluster_name}*"]   # GKE auto-tags nodes; wildcard often works
   }
@@ -53,7 +53,7 @@ custom_firewall_rules = {
     description = "Allow control plane to reach nodes (kubelet, etc.)"
     direction   = "INGRESS"
     priority    = 920
-    ranges      = [var.master_ipv4_cidr_block]
+    ranges      = []
     allow       = [{ protocol = "tcp", ports = ["443", "10250"] }]
     target_tags = ["gke-${var.cluster_name}*"]
   }
