@@ -36,7 +36,7 @@ custom_firewall_rules = {
     priority    = 900          # Must be much higher priority than deny-all
     ranges      = ["172.16.0.0/28"]
     allow       = [{ protocol = "tcp", ports = ["443"] }]
-    target_tags = ["gke-${var.cluster_name}*"]   # GKE auto-tags nodes; wildcard often works
+    target_tags = ["ai-ent"]   # GKE auto-tags nodes; wildcard often works
   }
 
   "gke-nodes-to-google-apis" = {
