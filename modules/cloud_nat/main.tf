@@ -13,15 +13,19 @@ resource "google_compute_router_nat" "nat" {
   router                             = google_compute_router.router.name
   region                             = var.region
   nat_ip_allocate_option             = "AUTO_ONLY"
-  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+  source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
 
-  min_ports_per_vm = var.min_ports_per_vm
-  max_ports_per_vm = var.max_ports_per_vm
-  
-  enable_dynamic_port_allocation = var.enable_dynamic_port_allocation
+  dynamic "subnetwork" {
+    for_each = var.nat_subnet_mapping  # or hardcode your GKE subnet
+    content {
+      name                    = google_compute_subnetwork.subnets["your-gke-subnet-key"].self_link   # adjust
+      source_ip_ranges_to_nat = ["ALL_IP_RANGES"]   # covers primary + pods + services
+    }
+  }
 
+  min_ports_per_vm = lookup(var.nat_config, "min_ports_per_vm", 128)
   log_config {
     enable = true
-    filter = var.log_filter
+    filter = lookup(var.nat_config, "log_filter", "ERRORS_ONLY")
   }
 }

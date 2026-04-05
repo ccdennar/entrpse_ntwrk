@@ -1,5 +1,5 @@
 resource "google_compute_firewall" "rules" {
-  for_each = var.firewall_rules
+  for_each = var.firewall_rules   # Make sure this variable receives the merged map
 
   name        = "${var.network_name}-${each.key}"
   network     = var.network_name
@@ -10,9 +10,9 @@ resource "google_compute_firewall" "rules" {
   source_ranges      = each.value.direction == "INGRESS" ? each.value.ranges : null
   destination_ranges = each.value.direction == "EGRESS" ? each.value.ranges : null
   
-  source_tags             = lookup(each.value, "source_tags", [])
-  target_tags             = lookup(each.value, "target_tags", [])
-  
+  source_tags = lookup(each.value, "source_tags", [])
+  target_tags = lookup(each.value, "target_tags", [])
+
   dynamic "allow" {
     for_each = lookup(each.value, "allow", [])
     content {

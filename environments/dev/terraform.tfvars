@@ -23,10 +23,39 @@ custom_firewall_rules = {
   "allow-monitoring" = {
     description = "Allow Prometheus/Grafana scraping"
     direction   = "INGRESS"
-    priority    = 950
+    priority    = 1000
     ranges      = ["10.0.5.0/24"]
-    allow       = [{ protocol = "tcp", ports = ["9090", "3000"] }]
+    allow       = [{ protocol = "tcp", ports = ["9090", "3000", "10250", "443"] }]
     target_tags = ["monitored"]
+  }
+
+  # === CRITICAL for private GKE cluster node registration ===
+  "gke-nodes-to-master" = {
+    description = "Allow GKE nodes to reach private control plane (required for registration)"
+    direction   = "EGRESS"
+    priority    = 900          # Must be much higher priority than deny-all
+    ranges      = [var.master_ipv4_cidr_block]   # e.g. "172.16.0.0/28" — use your actual value
+    allow       = [{ protocol = "tcp", ports = ["443"] }]
+    target_tags = ["gke-${var.cluster_name}*"]   # GKE auto-tags nodes; wildcard often works
+  }
+
+  "gke-nodes-to-google-apis" = {
+    description = "Allow GKE nodes egress to Google APIs (image pulls, metadata, bootstrap)"
+    direction   = "EGRESS"
+    priority    = 910
+    ranges      = ["199.36.153.4/30"]   # restricted.googleapis.com (best practice for private clusters)
+    allow       = [{ protocol = "tcp", ports = ["80", "443"] }]
+    target_tags = ["gke-${var.cluster_name}*"]
+  }
+
+  # Optional but recommended: Master → Nodes (GKE usually creates this, but explicit helps)
+  "gke-master-to-nodes" = {
+    description = "Allow control plane to reach nodes (kubelet, etc.)"
+    direction   = "INGRESS"
+    priority    = 920
+    ranges      = [var.master_ipv4_cidr_block]
+    allow       = [{ protocol = "tcp", ports = ["443", "10250"] }]
+    target_tags = ["gke-${var.cluster_name}*"]
   }
 }
 
