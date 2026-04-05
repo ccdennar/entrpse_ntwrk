@@ -18,7 +18,7 @@ resource "google_compute_router_nat" "nat" {
   dynamic "subnetwork" {
     for_each = var.nat_subnet_mapping  # or hardcode your GKE subnet
     content {
-      name                    = google_compute_subnetwork.subnets[*].self_link   # adjust
+      name                    = subnetwork.value.self_link
       source_ip_ranges_to_nat = ["ALL_IP_RANGES"]   # covers primary + pods + services
     }
   }

@@ -64,3 +64,8 @@ variable "nat_config" {
     log_filter       = "ERRORS_ONLY"
   }
 }
+
+variable "subnetworks" {
+  description = "Map of subnet objects from the VPC module to attach to NAT"
+  type        = map(any)   # or more precise: map(object({ self_link = string }))
+}
