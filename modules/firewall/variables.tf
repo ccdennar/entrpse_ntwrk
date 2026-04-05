@@ -40,5 +40,5 @@ variable "create_deny_all_rules" {
 variable "master_ipv4_cidr_block" {
   type        = string
   description = "CIDR block for the GKE private cluster control plane (must be /28)"
-  default     = []
+  default     = "172.16.0.0/28"
 }
