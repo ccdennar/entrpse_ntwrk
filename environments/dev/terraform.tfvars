@@ -45,7 +45,7 @@ custom_firewall_rules = {
     priority    = 910
     ranges      = ["199.36.153.4/30"]   # restricted.googleapis.com (best practice for private clusters)
     allow       = [{ protocol = "tcp", ports = ["80", "443"] }]
-    target_tags = ["gke-${var.cluster_name}*"]
+    target_tags = ["ai-ent"]
   }
 
   # Optional but recommended: Master → Nodes (GKE usually creates this, but explicit helps)
@@ -55,7 +55,7 @@ custom_firewall_rules = {
     priority    = 920
     ranges      = []
     allow       = [{ protocol = "tcp", ports = ["443", "10250"] }]
-    target_tags = ["gke-${var.cluster_name}*"]
+    target_tags = ["ai-ent"]
   }
 }
 
