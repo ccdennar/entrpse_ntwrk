@@ -51,17 +51,17 @@ module "firewall" {
 
 module "cloud_nat" {
   source   = "./modules/cloud_nat"
-  for_each = local.nat_enabled  
+  for_each = local.nat_enabled
 
   region       = each.value
   network_name = module.vpc.network_name
   router_name  = "${local.name_prefix}-router-${each.value}"
   nat_name     = "${local.name_prefix}-nat-${each.value}"
 
-  # Pass the subnets map from VPC module (this is the key fix)
-  subnets = module.vpc.subnets
+    subnets = {
+    gke = module.vpc.subnets["web-us-central1"]  # etc
+  }
 
-  # Your existing nat_config variables
   min_ports_per_vm               = var.nat_config.min_ports_per_vm
   max_ports_per_vm               = var.nat_config.max_ports_per_vm
   enable_dynamic_port_allocation = var.nat_config.enable_dynamic_port_allocation

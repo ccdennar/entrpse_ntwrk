@@ -11,7 +11,7 @@ output "network_self_link" {
   value = google_compute_network.vpc.self_link
 }
 
-output "subnets" {
+output "subnetworks" {
   value = {
     for key, subnet in google_compute_subnetwork.subnets : key => {
       id                       = subnet.id
@@ -35,4 +35,8 @@ output "private_service_access" {
     address       = google_compute_global_address.private_service_access["enabled"].address
     prefix_length = google_compute_global_address.private_service_access["enabled"].prefix_length
   } : null
+}
+
+output "subnets" {
+  value = google_compute_subnetwork.subnets
 }

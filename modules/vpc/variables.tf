@@ -30,6 +30,7 @@ variable "subnets" {
       ip_cidr_range = string
     })), {})
   }))
+  default = {}
 }
 
 variable "enable_flow_logs" {

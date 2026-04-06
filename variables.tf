@@ -200,3 +200,19 @@ variable "create_deny_all_rules" {
   type        = bool
   default     = true
 }
+
+variable "subnets" {
+  type = map(object({
+    name                     = string
+    region                   = string
+    purpose                  = string
+    ip_cidr_range           = string
+    private_ip_google_access = optional(bool, false)
+    flow_logs                = optional(bool, true)
+    secondary_ip_ranges      = optional(map(object({
+      range_name    = string
+      ip_cidr_range = string
+    })), {})
+  }))
+  default = {}
+}
